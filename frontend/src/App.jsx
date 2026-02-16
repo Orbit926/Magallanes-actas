@@ -47,6 +47,8 @@ export default function App() {
     folio: '',
   });
   const [checkedItems, setCheckedItems] = useState({});
+  const [comments, setComments] = useState('');
+  const [itemComments, setItemComments] = useState({});
   const stepperRef = useRef(null);
 
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
@@ -83,6 +85,8 @@ export default function App() {
       folio: '',
     });
     setCheckedItems({});
+    setComments('');
+    setItemComments({});
     scrollToTop();
   };
 
@@ -97,6 +101,10 @@ export default function App() {
           <DeliveryChecklist
             checkedItems={checkedItems}
             setCheckedItems={setCheckedItems}
+            comments={comments}
+            setComments={setComments}
+            itemComments={itemComments}
+            setItemComments={setItemComments}
             onNext={handleNext}
             onBack={handleBack}
           />
@@ -106,6 +114,7 @@ export default function App() {
           <SignaturePad
             formData={formData}
             checkedItems={checkedItems}
+            comments={comments}
             onBack={handleBack}
             onReset={handleReset}
           />

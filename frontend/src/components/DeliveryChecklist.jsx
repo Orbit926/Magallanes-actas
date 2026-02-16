@@ -12,6 +12,12 @@ import {
   Alert,
   Chip,
   LinearProgress,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
 } from '@mui/material';
 import {
   ArrowBack,
@@ -20,6 +26,8 @@ import {
   FormatPaintOutlined,
   ElectricalServicesOutlined,
   KitchenOutlined,
+  CommentOutlined,
+  EditOutlined,
 } from '@mui/icons-material';
 import { checklistSections } from '../utils/contractTemplate';
 
@@ -29,9 +37,12 @@ const sectionIcons = {
   Equipamiento: <KitchenOutlined />,
 };
 
-export default function DeliveryChecklist({ checkedItems, setCheckedItems, onNext, onBack }) {
+export default function DeliveryChecklist({ checkedItems, setCheckedItems, onNext, onBack, comments, setComments, itemComments, setItemComments }) {
   const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [commentModalOpen, setCommentModalOpen] = useState(false);
+  const [currentCommentItem, setCurrentCommentItem] = useState(null);
+  const [tempComment, setTempComment] = useState('');
 
   const allItems = checklistSections.flatMap((s) => s.items);
   const checkedCount = allItems.filter((i) => checkedItems[i.id]).length;
@@ -49,6 +60,51 @@ export default function DeliveryChecklist({ checkedItems, setCheckedItems, onNex
       updates[i.id] = !allChecked;
     });
     setCheckedItems((prev) => ({ ...prev, ...updates }));
+  };
+
+  const handleOpenCommentModal = (item) => {
+    setCurrentCommentItem(item);
+    setTempComment(itemComments[item.id] || '');
+    setCommentModalOpen(true);
+  };
+
+  const handleCloseCommentModal = () => {
+    setCommentModalOpen(false);
+    setCurrentCommentItem(null);
+    setTempComment('');
+  };
+
+  const handleConfirmComment = () => {
+    if (!currentCommentItem) return;
+    
+    const itemId = currentCommentItem.id;
+    const itemLabel = currentCommentItem.label;
+    const commentText = tempComment.trim();
+    
+    // Update item comments
+    setItemComments((prev) => ({
+      ...prev,
+      [itemId]: commentText,
+    }));
+    
+    // Update general comments area
+    const commentLine = `${itemId} - ${itemLabel}: ${commentText}`;
+    const linePattern = new RegExp(`^${itemId} - .*$`, 'm');
+    
+    setComments((prev) => {
+      if (!commentText) {
+        // Remove the line if comment is empty
+        return prev.replace(linePattern, '').replace(/\n{2,}/g, '\n').trim();
+      }
+      if (linePattern.test(prev)) {
+        // Update existing line
+        return prev.replace(linePattern, commentLine);
+      }
+      // Add new line
+      return prev ? `${prev}\n${commentLine}` : commentLine;
+    });
+    
+    handleCloseCommentModal();
   };
 
   const handleContinue = () => {
@@ -142,39 +198,92 @@ export default function DeliveryChecklist({ checkedItems, setCheckedItems, onNex
 
               <FormGroup sx={{ pl: 2 }}>
                 {section.items.map((item) => (
-                  <FormControlLabel
+                  <Box
                     key={item.id}
-                    control={
-                      <Checkbox
-                        checked={!!checkedItems[item.id]}
-                        onChange={() => handleToggle(item.id)}
-                        color="success"
-                        size="small"
-                      />
-                    }
-                    label={
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: checkedItems[item.id] ? 'text.primary' : 'text.secondary',
-                          textDecoration: checkedItems[item.id] ? 'none' : 'none',
-                        }}
-                      >
-                        {item.label}
-                      </Typography>
-                    }
                     sx={{
-                      mx: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
                       py: 0.3,
                       borderRadius: 1,
                       '&:hover': { bgcolor: 'grey.50' },
                     }}
-                  />
+                  >
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={!!checkedItems[item.id]}
+                          onChange={() => handleToggle(item.id)}
+                          color="success"
+                          size="small"
+                        />
+                      }
+                      label={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: checkedItems[item.id] ? 'text.primary' : 'text.secondary',
+                            }}
+                          >
+                            {item.label}
+                          </Typography>
+                          {itemComments[item.id] && (
+                            <Chip
+                              size="small"
+                              label="Comentario"
+                              color="warning"
+                              variant="outlined"
+                              sx={{ height: 20, fontSize: '0.7rem' }}
+                            />
+                          )}
+                        </Box>
+                      }
+                      sx={{ mx: 0, flex: 1 }}
+                    />
+                    <Button
+                      size="small"
+                      startIcon={itemComments[item.id] ? <EditOutlined /> : <CommentOutlined />}
+                      onClick={() => handleOpenCommentModal(item)}
+                      sx={{
+                        textTransform: 'none',
+                        fontSize: '0.75rem',
+                        minWidth: 'auto',
+                        px: 1,
+                        color: itemComments[item.id] ? 'warning.main' : 'text.secondary',
+                      }}
+                    >
+                      {itemComments[item.id] ? 'Editar' : 'Comentario'}
+                    </Button>
+                  </Box>
                 ))}
               </FormGroup>
             </Box>
           );
         })}
+
+        <Divider sx={{ my: 3 }} />
+
+        {/* Comentarios generales */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1, color: 'primary.dark' }}>
+            Comentarios
+          </Typography>
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            placeholder="Escribe aquí cualquier comentario general sobre la entrega..."
+            value={comments}
+            onChange={(e) => setComments(e.target.value)}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                bgcolor: 'grey.50',
+              },
+            }}
+          />
+        </Box>
 
         <Divider sx={{ my: 3 }} />
 
@@ -221,6 +330,62 @@ export default function DeliveryChecklist({ checkedItems, setCheckedItems, onNex
           {loading ? <CircularProgress size={22} color="inherit" /> : 'Continuar'}
         </Button>
       </Box>
+
+      {/* Modal de comentario por ítem */}
+      <Dialog
+        open={commentModalOpen}
+        onClose={handleCloseCommentModal}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <CommentOutlined color="primary" />
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              Agregar Comentario
+            </Typography>
+          </Box>
+          {currentCommentItem && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              {currentCommentItem.id} - {currentCommentItem.label}
+            </Typography>
+          )}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            placeholder="Escribe tu comentario sobre este elemento..."
+            value={tempComment}
+            onChange={(e) => setTempComment(e.target.value)}
+            autoFocus
+            sx={{
+              mt: 1,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+              },
+            }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={handleCloseCommentModal}
+            variant="outlined"
+            sx={{ textTransform: 'none', borderRadius: 2 }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmComment}
+            variant="contained"
+            sx={{ textTransform: 'none', borderRadius: 2 }}
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

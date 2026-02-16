@@ -10,17 +10,20 @@ import {
   DialogContent,
   DialogActions,
   Alert,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
 import {
   ArrowBack,
   DeleteOutline,
   PictureAsPdfOutlined,
   CheckCircle,
+  GavelOutlined,
 } from '@mui/icons-material';
 import SignaturePadLib from 'signature_pad';
 import { generatePDF } from '../utils/pdfGenerator';
 
-export default function SignaturePad({ formData, checkedItems, onBack, onReset }) {
+export default function SignaturePad({ formData, checkedItems, comments, onBack, onReset }) {
   const canvasRef = useRef(null);
   const sigPadRef = useRef(null);
   const containerRef = useRef(null);
@@ -28,6 +31,8 @@ export default function SignaturePad({ formData, checkedItems, onBack, onReset }
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [generatedFile, setGeneratedFile] = useState('');
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
+  const [legalAccepted, setLegalAccepted] = useState(false);
 
   const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -84,12 +89,24 @@ export default function SignaturePad({ formData, checkedItems, onBack, onReset }
     setHasSignature(false);
   };
 
-  const handleGenerate = async () => {
+  const handleRequestGenerate = () => {
     if (!hasSignature) return;
+    setLegalAccepted(false);
+    setLegalModalOpen(true);
+  };
+
+  const handleCloseLegalModal = () => {
+    setLegalModalOpen(false);
+    setLegalAccepted(false);
+  };
+
+  const handleConfirmLegal = async () => {
+    if (!legalAccepted) return;
+    setLegalModalOpen(false);
     setLoading(true);
     try {
       const signatureImg = sigPadRef.current.toDataURL('image/png');
-      const fileName = await generatePDF({ formData, checkedItems, signatureImg });
+      const fileName = await generatePDF({ formData, checkedItems, comments, signatureImg });
       setGeneratedFile(fileName);
       setDialogOpen(true);
     } catch (err) {
@@ -169,7 +186,7 @@ export default function SignaturePad({ formData, checkedItems, onBack, onReset }
           size="large"
           fullWidth
           startIcon={loading ? null : <PictureAsPdfOutlined />}
-          onClick={handleGenerate}
+          onClick={handleRequestGenerate}
           disabled={!hasSignature || loading}
           sx={{
             py: 1.5,
@@ -197,6 +214,62 @@ export default function SignaturePad({ formData, checkedItems, onBack, onReset }
           Regresar
         </Button>
       </Box>
+
+      {/* Legal confirmation modal */}
+      <Dialog
+        open={legalModalOpen}
+        onClose={handleCloseLegalModal}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <GavelOutlined sx={{ color: 'primary.main', fontSize: 28 }} />
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            Confirmación Legal
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Alert severity="info" sx={{ borderRadius: 2, mb: 3 }}>
+            Antes de finalizar, por favor confirma que estás de acuerdo con los términos legales.
+          </Alert>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={legalAccepted}
+                onChange={(e) => setLegalAccepted(e.target.checked)}
+                color="primary"
+              />
+            }
+            label={
+              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                El cliente está consciente y de acuerdo en que este documento firmado de forma digital es legal y legítimo.
+              </Typography>
+            }
+            sx={{
+              alignItems: 'flex-start',
+              '& .MuiCheckbox-root': { mt: -0.5 },
+            }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={handleCloseLegalModal}
+            variant="outlined"
+            sx={{ textTransform: 'none', borderRadius: 2 }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmLegal}
+            variant="contained"
+            disabled={!legalAccepted}
+            sx={{ textTransform: 'none', borderRadius: 2, px: 3 }}
+          >
+            Confirmar y Generar PDF
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Success dialog */}
       <Dialog

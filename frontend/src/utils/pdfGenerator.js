@@ -146,7 +146,7 @@ function writeWrappedText(doc, text, x, y, maxWidth, lineHeight, folio, logoImg)
   return y;
 }
 
-export async function generatePDF({ formData, checkedItems, signatureImg }) {
+export async function generatePDF({ formData, checkedItems, comments, signatureImg }) {
   const doc = new jsPDF('p', 'mm', 'a4');
   const folio = formData.folio || 'HM-000-00000000-0000';
   const now = new Date();
@@ -308,6 +308,37 @@ export async function generatePDF({ formData, checkedItems, signatureImg }) {
     MARGIN_LEFT,
     y
   );
+
+  // ===================== COMMENTS SECTION =====================
+  if (comments && comments.trim()) {
+    y += 12;
+    
+    if (y > MAX_Y - 30) {
+      y = addNewPage(doc, folio, logoImg);
+    }
+    
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(primaryDarkRgb.r, primaryDarkRgb.g, primaryDarkRgb.b);
+    doc.text('COMENTARIOS Y OBSERVACIONES', MARGIN_LEFT, y);
+    y += 2;
+    doc.setDrawColor(secondaryRgb.r, secondaryRgb.g, secondaryRgb.b);
+    doc.setLineWidth(0.5);
+    doc.line(MARGIN_LEFT, y, MARGIN_LEFT + 70, y);
+    y += 6;
+    
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    
+    const commentLines = comments.split('\n');
+    for (const line of commentLines) {
+      if (line.trim()) {
+        y = writeWrappedText(doc, line.trim(), MARGIN_LEFT, y, PAGE_WIDTH - MARGIN_LEFT - MARGIN_RIGHT, 4.5, folio, logoImg);
+        y += 1;
+      }
+    }
+  }
 
   // ===================== PAGE 3: Warranty =====================
   y = addNewPage(doc, folio, logoImg);
