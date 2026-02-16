@@ -17,27 +17,36 @@ const MARGIN_BOTTOM = 60;
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
 const MAX_Y = PAGE_HEIGHT - MARGIN_BOTTOM;
 
-// Variable para almacenar el logo en base64
+// Variables para almacenar imágenes en base64
 let logoBase64 = null;
+let firmaRepresentanteBase64 = null;
 
-// Función para cargar el logo
-async function loadLogo() {
-  if (logoBase64) return logoBase64;
+// Función para cargar una imagen como base64
+async function loadImage(path) {
   try {
-    const response = await fetch('/logos/logo.png');
+    const response = await fetch(path);
     const blob = await response.blob();
     return new Promise((resolve) => {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        logoBase64 = reader.result;
-        resolve(logoBase64);
-      };
+      reader.onloadend = () => resolve(reader.result);
       reader.readAsDataURL(blob);
     });
   } catch (e) {
-    console.warn('No se pudo cargar el logo:', e);
+    console.warn(`No se pudo cargar la imagen ${path}:`, e);
     return null;
   }
+}
+
+async function loadLogo() {
+  if (logoBase64) return logoBase64;
+  logoBase64 = await loadImage('/logos/logo.png');
+  return logoBase64;
+}
+
+async function loadFirmaRepresentante() {
+  if (firmaRepresentanteBase64) return firmaRepresentanteBase64;
+  firmaRepresentanteBase64 = await loadImage('/firma/firma-ejemplo.png');
+  return firmaRepresentanteBase64;
 }
 
 function addHeader(doc, folio, logoImg) {
@@ -143,8 +152,9 @@ export async function generatePDF({ formData, checkedItems, signatureImg }) {
   const now = new Date();
   const fechaHora = `${now.toLocaleDateString('es-MX')} ${now.toLocaleTimeString('es-MX')}`;
   
-  // Cargar logo
+  // Cargar logo y firma del representante
   const logoImg = await loadLogo();
+  const firmaRepresentante = await loadFirmaRepresentante();
 
   // ===================== PAGE 1: Contract =====================
   addHeader(doc, folio, logoImg);
@@ -373,7 +383,16 @@ export async function generatePDF({ formData, checkedItems, signatureImg }) {
     try {
       doc.addImage(signatureImg, 'PNG', sigBlockX1 + 5, y, 50, 22);
     } catch (e) {
-      console.warn('Error adding signature:', e);
+      console.warn('Error adding owner signature:', e);
+    }
+  }
+
+  // Firma del representante de la constructora
+  if (firmaRepresentante) {
+    try {
+      doc.addImage(firmaRepresentante, 'PNG', sigBlockX2 + 5, y, 50, 22);
+    } catch (e) {
+      console.warn('Error adding representative signature:', e);
     }
   }
 

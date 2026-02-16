@@ -75,23 +75,26 @@ export function getContractText(data) {
 
     // INMUEBLE
     numeroCasa = '___',
-    direccion = '___________',
-    ciudadEstado = '___________',
-    fechaEntrega = '___________',
     folio = '___________',
 
-    // OPCIONALES (si no los tienes aún, se quedan como líneas)
-    vendedorRepresentante = 'Arq. Mayra Belen Lupercio Romero', // Ej: Arq. Mayra Belen Lupercio Romero
-    vendedorRepresentadoPor = 'Lic. Ricardo García Rulfo de Aguinaga', // Ej: Lic. Ricardo García Rulfo de Aguinaga (Constructor)
-    colonia = 'Temozón Norte',
-    cp = '01234',
-    municipio = 'Tlajomulco de Zúñiga',
+    // DATOS FIJOS DEL CONDOMINIO
+    vendedorRepresentante = 'Arq. Mayra Belen Lupercio Romero',
+    vendedorRepresentadoPor = 'Lic. Ricardo García Rulfo de Aguinaga',
   } = data;
 
   const nombreCompleto = `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
 
-  // Forzar nombre correcto del fraccionamiento/condominio según PDF
+  // Datos fijos de Magallanes Residencial
   const condominioNombre = 'Magallanes Residencial';
+  const direccionFija = `Av. Magallanes #890 int. ${numeroCasa}`;
+  const colonia = 'Santa Anita';
+  const cp = '45600';
+  const municipio = 'Tlaquepaque';
+  const ciudadEstado = 'Jalisco';
+  
+  // Fecha actual formateada
+  const hoy = new Date();
+  const fechaEntrega = hoy.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
 
   return [
     {
@@ -101,7 +104,7 @@ export function getContractText(data) {
     {
       title: '',
       content:
-        `Por medio del presente documento se hace constar la comparecencia de ${vendedorRepresentante} en representación del ${vendedorRepresentadoPor}, a quien se le denominará “EL VENDEDOR” así como de ${nombreCompleto} de la finca marcada con el número ${numeroCasa} del Condominio “${condominioNombre}”, ubicado en ${direccion}${colonia ? ` en la Colonia ${colonia}` : ''}${cp ? `, C.P.${cp}` : ''}${municipio ? `, en el Municipio de ${municipio}` : ''}${ciudadEstado ? `, ${ciudadEstado}` : ''}, a quien se le denominará “EL PROPIETARIO” por lo que ambas partes están de acuerdo en hacer constar los siguientes hechos:`,
+        `Por medio del presente documento se hace constar la comparecencia de ${vendedorRepresentante} en representación del ${vendedorRepresentadoPor}, a quien se le denominará "EL VENDEDOR" así como de ${nombreCompleto} de la finca marcada con el número ${numeroCasa} del Condominio "${condominioNombre}", ubicado en ${direccionFija} en la Colonia ${colonia}, C.P.${cp}, en el Municipio de ${municipio}, ${ciudadEstado}, a quien se le denominará "EL PROPIETARIO" por lo que ambas partes están de acuerdo en hacer constar los siguientes hechos:`,
     },
     {
       title: '',
@@ -181,10 +184,6 @@ export const mockData = {
   apellidoPaterno: 'García',
   apellidoMaterno: 'Martínez',
   email: 'carlos.garcia@correo.com',
-  telefono: '9991234567',
+  telefono: '3331234567',
   numeroCasa: '42',
-  condominio: 'Hacienda del Monte Residencial',
-  direccion: 'Calle 30 No. 250, Lote 42, Temozón Norte',
-  ciudadEstado: 'Mérida, Yucatán',
-  fechaEntrega: '',
 };

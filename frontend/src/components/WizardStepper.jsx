@@ -15,7 +15,6 @@ import {
   HomeOutlined,
   EmailOutlined,
   PhoneOutlined,
-  CalendarMonthOutlined,
   AutoFixHighOutlined,
 } from '@mui/icons-material';
 import { mockData } from '../utils/contractTemplate';
@@ -29,11 +28,7 @@ const personalFields = [
 ];
 
 const propertyFields = [
-  { name: 'numeroCasa', label: 'Número de Casa / Lote', icon: <HomeOutlined />, grid: 4, required: true },
-  { name: 'condominio', label: 'Condominio / Desarrollo', icon: <HomeOutlined />, grid: 8, required: true },
-  { name: 'direccion', label: 'Dirección completa', icon: <HomeOutlined />, grid: 8, required: true },
-  { name: 'ciudadEstado', label: 'Ciudad / Estado', icon: <HomeOutlined />, grid: 4, required: true },
-  { name: 'fechaEntrega', label: 'Fecha de entrega', icon: <CalendarMonthOutlined />, grid: 4, required: true, type: 'date' },
+  { name: 'numeroCasa', label: 'Número de Casa / Lote', icon: <HomeOutlined />, grid: 12, required: true },
 ];
 
 const allFields = [...personalFields, ...propertyFields];
@@ -96,8 +91,7 @@ export default function WizardStepper({ formData, setFormData, onNext }) {
   };
 
   const handleLoadExample = () => {
-    const today = new Date().toISOString().split('T')[0];
-    setFormData({ ...mockData, fechaEntrega: today });
+    setFormData({ ...mockData });
     setErrors({});
   };
 

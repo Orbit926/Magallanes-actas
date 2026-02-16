@@ -43,10 +43,6 @@ export default function App() {
     email: '',
     telefono: '',
     numeroCasa: '',
-    condominio: '',
-    direccion: '',
-    ciudadEstado: '',
-    fechaEntrega: '',
     folio: '',
   });
   const [checkedItems, setCheckedItems] = useState({});
@@ -83,10 +79,6 @@ export default function App() {
       email: '',
       telefono: '',
       numeroCasa: '',
-      condominio: '',
-      direccion: '',
-      ciudadEstado: '',
-      fechaEntrega: '',
       folio: '',
     });
     setCheckedItems({});
