@@ -24,6 +24,7 @@ import ContractPreview from './components/ContractPreview';
 import DeliveryChecklist from './components/DeliveryChecklist';
 import SignaturePad from './components/SignaturePad';
 import SummaryPanel from './components/SummaryPanel';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 import { generateFolio } from './utils/contractTemplate';
 import theme from './config/theme';
 
@@ -117,6 +118,7 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <PWAInstallPrompt />
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
         {/* App Bar */}
         <AppBar
