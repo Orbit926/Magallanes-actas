@@ -1,7 +1,6 @@
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import {
   ThemeProvider,
-  createTheme,
   CssBaseline,
   AppBar,
   Toolbar,
@@ -26,6 +25,7 @@ import DeliveryChecklist from './components/DeliveryChecklist';
 import SignaturePad from './components/SignaturePad';
 import SummaryPanel from './components/SummaryPanel';
 import { generateFolio } from './utils/contractTemplate';
+import theme from './config/theme';
 
 const steps = [
   { label: 'Datos', icon: <DescriptionOutlined /> },
@@ -51,30 +51,6 @@ export default function App() {
   });
   const [checkedItems, setCheckedItems] = useState({});
   const stepperRef = useRef(null);
-
-  const theme = useMemo(
-    () =>
-      createTheme({
-        palette: {
-          primary: { main: '#1B365D', light: '#2D5A9E', dark: '#0F1F3D' },
-          secondary: { main: '#C49A6C' },
-          background: { default: '#F5F7FA', paper: '#FFFFFF' },
-          success: { main: '#2E7D32', 50: '#E8F5E9', 100: '#C8E6C9', 200: '#A5D6A7' },
-        },
-        typography: {
-          fontFamily: '"Inter", "Roboto", "Helvetica Neue", sans-serif',
-        },
-        shape: { borderRadius: 8 },
-        components: {
-          MuiButton: {
-            styleOverrides: {
-              root: { boxShadow: 'none', '&:hover': { boxShadow: '0 2px 8px rgba(27,54,93,0.15)' } },
-            },
-          },
-        },
-      }),
-    []
-  );
 
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
 
@@ -155,7 +131,7 @@ export default function App() {
           position="sticky"
           elevation={0}
           sx={{
-            bgcolor: 'primary.main',
+            bgcolor: 'background.default',
             borderBottom: '3px solid',
             borderColor: 'secondary.main',
           }}
@@ -163,23 +139,20 @@ export default function App() {
           <Toolbar>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1 }}>
               <Box
+                component="img"
+                src="/logos/logo.png"
+                alt="Logo"
                 sx={{
                   width: 36,
                   height: 36,
-                  borderRadius: 1.5,
-                  bgcolor: 'rgba(255,255,255,0.15)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  objectFit: 'contain',
                 }}
-              >
-                <AssignmentOutlined sx={{ color: 'secondary.main', fontSize: 22 }} />
-              </Box>
+              />
               <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2, letterSpacing: 0.5 }}>
+                <Typography variant="subtitle1" sx={{ color: 'primary.dark', fontWeight: 700, lineHeight: 1.2, letterSpacing: 0.5 }}>
                   Entrega Digital
                 </Typography>
-                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', lineHeight: 1 }}>
+                <Typography variant="caption" sx={{ color: 'primary.dark', lineHeight: 1 }}>
                   Demo — Constructora Hacienda del Monte
                 </Typography>
               </Box>

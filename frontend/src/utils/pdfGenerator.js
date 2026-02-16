@@ -1,6 +1,12 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { getContractText, warrantyConditions, checklistSections } from './contractTemplate';
+import { themeColors, hexToRgb } from '../config/theme';
+
+// Colores del theme convertidos a RGB
+const primaryRgb = hexToRgb(themeColors.primary.main);
+const primaryDarkRgb = hexToRgb(themeColors.primary.dark);
+const secondaryRgb = hexToRgb(themeColors.secondary.main);
 
 const PAGE_WIDTH = 210;
 const PAGE_HEIGHT = 297;
@@ -11,23 +17,65 @@ const MARGIN_BOTTOM = 60;
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
 const MAX_Y = PAGE_HEIGHT - MARGIN_BOTTOM;
 
-function addHeader(doc, folio) {
-  doc.setFillColor(27, 54, 93);
-  doc.rect(0, 0, PAGE_WIDTH, 20, 'F');
-  doc.setTextColor(255, 255, 255);
+// Variable para almacenar el logo en base64
+let logoBase64 = null;
+
+// Función para cargar el logo
+async function loadLogo() {
+  if (logoBase64) return logoBase64;
+  try {
+    const response = await fetch('/logos/logo.png');
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        logoBase64 = reader.result;
+        resolve(logoBase64);
+      };
+      reader.readAsDataURL(blob);
+    });
+  } catch (e) {
+    console.warn('No se pudo cargar el logo:', e);
+    return null;
+  }
+}
+
+function addHeader(doc, folio, logoImg) {
+  // Fondo blanco
+  doc.setFillColor(255, 255, 255);
+  doc.rect(0, 0, PAGE_WIDTH, 22, 'F');
+  
+  // Línea dorada en el borde inferior del header
+  doc.setDrawColor(secondaryRgb.r, secondaryRgb.g, secondaryRgb.b);
+  doc.setLineWidth(2);
+  doc.line(0, 22, PAGE_WIDTH, 22);
+  
+  // Logo
+  if (logoImg) {
+    try {
+      doc.addImage(logoImg, 'PNG', MARGIN_LEFT, 3, 16, 16);
+    } catch (e) {
+      console.warn('No se pudo agregar logo en header:', e);
+    }
+  }
+  
+  // Texto del header
+  const textX = logoImg ? MARGIN_LEFT + 20 : MARGIN_LEFT;
+  doc.setTextColor(primaryDarkRgb.r, primaryDarkRgb.g, primaryDarkRgb.b);
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
-  doc.text('Constructora Hacienda del Monte, S.A. de C.V.', MARGIN_LEFT, 13);
+  doc.text('Constructora Hacienda del Monte, S.A. de C.V.', textX, 12);
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Folio: ${folio}`, PAGE_WIDTH - MARGIN_RIGHT, 13, { align: 'right' });
+  doc.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+  doc.text(`Folio: ${folio}`, PAGE_WIDTH - MARGIN_RIGHT, 12, { align: 'right' });
   doc.setTextColor(0, 0, 0);
 }
 
 function addFooter(doc, pageNum, totalPages, folio, fecha, signatureImg) {
   const footerY = PAGE_HEIGHT - 45;
 
-  doc.setDrawColor(27, 54, 93);
+  doc.setDrawColor(secondaryRgb.r, secondaryRgb.g, secondaryRgb.b);
   doc.setLineWidth(0.5);
   doc.line(MARGIN_LEFT, footerY, PAGE_WIDTH - MARGIN_RIGHT, footerY);
 
@@ -71,17 +119,17 @@ function addFooter(doc, pageNum, totalPages, folio, fecha, signatureImg) {
   doc.setTextColor(0, 0, 0);
 }
 
-function addNewPage(doc, folio) {
+function addNewPage(doc, folio, logoImg) {
   doc.addPage();
-  addHeader(doc, folio);
+  addHeader(doc, folio, logoImg);
   return MARGIN_TOP + 5;
 }
 
-function writeWrappedText(doc, text, x, y, maxWidth, lineHeight, folio) {
+function writeWrappedText(doc, text, x, y, maxWidth, lineHeight, folio, logoImg) {
   const lines = doc.splitTextToSize(text, maxWidth);
   for (let i = 0; i < lines.length; i++) {
     if (y > MAX_Y) {
-      y = addNewPage(doc, folio);
+      y = addNewPage(doc, folio, logoImg);
     }
     doc.text(lines[i], x, y);
     y += lineHeight;
@@ -89,14 +137,17 @@ function writeWrappedText(doc, text, x, y, maxWidth, lineHeight, folio) {
   return y;
 }
 
-export function generatePDF({ formData, checkedItems, signatureImg }) {
+export async function generatePDF({ formData, checkedItems, signatureImg }) {
   const doc = new jsPDF('p', 'mm', 'a4');
   const folio = formData.folio || 'HM-000-00000000-0000';
   const now = new Date();
   const fechaHora = `${now.toLocaleDateString('es-MX')} ${now.toLocaleTimeString('es-MX')}`;
+  
+  // Cargar logo
+  const logoImg = await loadLogo();
 
   // ===================== PAGE 1: Contract =====================
-  addHeader(doc, folio);
+  addHeader(doc, folio, logoImg);
   let y = MARGIN_TOP + 5;
 
   const contractSections = getContractText(formData);
@@ -104,16 +155,16 @@ export function generatePDF({ formData, checkedItems, signatureImg }) {
   for (const section of contractSections) {
     if (section.title) {
       if (y > MAX_Y - 10) {
-        y = addNewPage(doc, folio);
+        y = addNewPage(doc, folio, logoImg);
       }
 
       if (section.title === 'ACTA DE ENTREGA-RECEPCIÓN DE VIVIENDA') {
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(27, 54, 93);
+        doc.setTextColor(primaryDarkRgb.r, primaryDarkRgb.g, primaryDarkRgb.b);
         doc.text(section.title, PAGE_WIDTH / 2, y, { align: 'center' });
         y += 4;
-        doc.setDrawColor(27, 54, 93);
+        doc.setDrawColor(primaryDarkRgb.r, primaryDarkRgb.g, primaryDarkRgb.b);
         doc.setLineWidth(0.8);
         doc.line(MARGIN_LEFT + 20, y, PAGE_WIDTH - MARGIN_RIGHT - 20, y);
         y += 10;
@@ -123,7 +174,7 @@ export function generatePDF({ formData, checkedItems, signatureImg }) {
 
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(27, 54, 93);
+      doc.setTextColor(primaryDarkRgb.r, primaryDarkRgb.g, primaryDarkRgb.b);
       doc.text(section.title, MARGIN_LEFT, y);
       doc.setTextColor(0, 0, 0);
       y += 6;
@@ -138,7 +189,7 @@ export function generatePDF({ formData, checkedItems, signatureImg }) {
           y += 3;
           continue;
         }
-        y = writeWrappedText(doc, paragraph.trim(), MARGIN_LEFT, y, CONTENT_WIDTH, 4.5, folio);
+        y = writeWrappedText(doc, paragraph.trim(), MARGIN_LEFT, y, CONTENT_WIDTH, 4.5, folio, logoImg);
         y += 2;
       }
       y += 4;
@@ -146,14 +197,14 @@ export function generatePDF({ formData, checkedItems, signatureImg }) {
   }
 
   // ===================== PAGE 2: Checklist =====================
-  y = addNewPage(doc, folio);
+  y = addNewPage(doc, folio, logoImg);
 
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(27, 54, 93);
+  doc.setTextColor(primaryDarkRgb.r, primaryDarkRgb.g, primaryDarkRgb.b);
   doc.text('ANEXO A — CHECKLIST DE ENTREGA', PAGE_WIDTH / 2, y, { align: 'center' });
   y += 4;
-  doc.setDrawColor(27, 54, 93);
+  doc.setDrawColor(primaryDarkRgb.r, primaryDarkRgb.g, primaryDarkRgb.b);
   doc.setLineWidth(0.8);
   doc.line(MARGIN_LEFT + 20, y, PAGE_WIDTH - MARGIN_RIGHT - 20, y);
   y += 10;
@@ -172,21 +223,21 @@ export function generatePDF({ formData, checkedItems, signatureImg }) {
 
   for (const section of checklistSections) {
     if (y > MAX_Y - 15) {
-      y = addNewPage(doc, folio);
+      y = addNewPage(doc, folio, logoImg);
     }
 
     doc.setFillColor(240, 244, 248);
     doc.rect(MARGIN_LEFT, y - 4, CONTENT_WIDTH, 7, 'F');
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(27, 54, 93);
+    doc.setTextColor(primaryDarkRgb.r, primaryDarkRgb.g, primaryDarkRgb.b);
     doc.text(section.title.toUpperCase(), MARGIN_LEFT + 3, y);
     doc.setTextColor(0, 0, 0);
     y += 8;
 
     for (const item of section.items) {
       if (y > MAX_Y) {
-        y = addNewPage(doc, folio);
+        y = addNewPage(doc, folio, logoImg);
       }
       const isChecked = checkedItems[item.id] === true;
       doc.setFontSize(9);
@@ -227,11 +278,11 @@ export function generatePDF({ formData, checkedItems, signatureImg }) {
   const totalCount = allItems.length;
 
   if (y > MAX_Y - 20) {
-    y = addNewPage(doc, folio);
+    y = addNewPage(doc, folio, logoImg);
   }
 
   y += 4;
-  doc.setDrawColor(27, 54, 93);
+  doc.setDrawColor(primaryDarkRgb.r, primaryDarkRgb.g, primaryDarkRgb.b);
   doc.setLineWidth(0.5);
   doc.line(MARGIN_LEFT, y, PAGE_WIDTH - MARGIN_RIGHT, y);
   y += 8;
@@ -249,17 +300,17 @@ export function generatePDF({ formData, checkedItems, signatureImg }) {
   );
 
   // ===================== PAGE 3: Warranty =====================
-  y = addNewPage(doc, folio);
+  y = addNewPage(doc, folio, logoImg);
 
   for (const section of warrantyConditions) {
     if (section.title && section.content === '') {
       // Main title
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(27, 54, 93);
+      doc.setTextColor(primaryDarkRgb.r, primaryDarkRgb.g, primaryDarkRgb.b);
       doc.text(section.title, PAGE_WIDTH / 2, y, { align: 'center' });
       y += 4;
-      doc.setDrawColor(27, 54, 93);
+      doc.setDrawColor(primaryDarkRgb.r, primaryDarkRgb.g, primaryDarkRgb.b);
       doc.setLineWidth(0.8);
       doc.line(MARGIN_LEFT + 10, y, PAGE_WIDTH - MARGIN_RIGHT - 10, y);
       y += 10;
@@ -268,13 +319,13 @@ export function generatePDF({ formData, checkedItems, signatureImg }) {
     }
 
     if (y > MAX_Y - 10) {
-      y = addNewPage(doc, folio);
+      y = addNewPage(doc, folio, logoImg);
     }
 
     if (section.title) {
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(27, 54, 93);
+      doc.setTextColor(primaryDarkRgb.r, primaryDarkRgb.g, primaryDarkRgb.b);
       doc.text(section.title, MARGIN_LEFT, y);
       doc.setTextColor(0, 0, 0);
       y += 6;
@@ -289,7 +340,7 @@ export function generatePDF({ formData, checkedItems, signatureImg }) {
           y += 3;
           continue;
         }
-        y = writeWrappedText(doc, paragraph.trim(), MARGIN_LEFT, y, CONTENT_WIDTH, 4.5, folio);
+        y = writeWrappedText(doc, paragraph.trim(), MARGIN_LEFT, y, CONTENT_WIDTH, 4.5, folio, logoImg);
         y += 2;
       }
       y += 4;
@@ -298,18 +349,18 @@ export function generatePDF({ formData, checkedItems, signatureImg }) {
 
   // ===================== Signature block on last page =====================
   if (y > MAX_Y - 40) {
-    y = addNewPage(doc, folio);
+    y = addNewPage(doc, folio, logoImg);
   }
 
   y += 10;
-  doc.setDrawColor(27, 54, 93);
+  doc.setDrawColor(primaryDarkRgb.r, primaryDarkRgb.g, primaryDarkRgb.b);
   doc.setLineWidth(0.5);
   doc.line(MARGIN_LEFT, y, PAGE_WIDTH - MARGIN_RIGHT, y);
   y += 10;
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(27, 54, 93);
+  doc.setTextColor(primaryDarkRgb.r, primaryDarkRgb.g, primaryDarkRgb.b);
   doc.text('FIRMAS DE CONFORMIDAD', PAGE_WIDTH / 2, y, { align: 'center' });
   doc.setTextColor(0, 0, 0);
   y += 12;

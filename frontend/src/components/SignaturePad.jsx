@@ -84,22 +84,20 @@ export default function SignaturePad({ formData, checkedItems, onBack, onReset }
     setHasSignature(false);
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!hasSignature) return;
     setLoading(true);
-    setTimeout(() => {
-      try {
-        const signatureImg = sigPadRef.current.toDataURL('image/png');
-        const fileName = generatePDF({ formData, checkedItems, signatureImg });
-        setGeneratedFile(fileName);
-        setDialogOpen(true);
-      } catch (err) {
-        console.error('Error generating PDF:', err);
-        alert('Error al generar el PDF. Revisa la consola.');
-      } finally {
-        setLoading(false);
-      }
-    }, 600);
+    try {
+      const signatureImg = sigPadRef.current.toDataURL('image/png');
+      const fileName = await generatePDF({ formData, checkedItems, signatureImg });
+      setGeneratedFile(fileName);
+      setDialogOpen(true);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      alert('Error al generar el PDF. Revisa la consola.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
