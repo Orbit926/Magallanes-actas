@@ -87,9 +87,11 @@ export default function DeliveryChecklist({ checkedItems, setCheckedItems, onNex
       [itemId]: commentText,
     }));
     
-    // Update general comments area
-    const commentLine = `${itemId} - ${itemLabel}: ${commentText}`;
-    const linePattern = new RegExp(`^${itemId} - .*$`, 'm');
+    // Update general comments area - only show label, not technical ID
+    const commentLine = `${itemLabel}: ${commentText}`;
+    // Use label as pattern to find existing comment
+    const escapedLabel = itemLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const linePattern = new RegExp(`^${escapedLabel}:.*$`, 'm');
     
     setComments((prev) => {
       if (!commentText) {
@@ -107,8 +109,10 @@ export default function DeliveryChecklist({ checkedItems, setCheckedItems, onNex
     handleCloseCommentModal();
   };
 
+  const allChecked = checkedCount === totalCount;
+
   const handleContinue = () => {
-    if (!confirmed) return;
+    if (!confirmed || !allChecked) return;
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
@@ -287,10 +291,18 @@ export default function DeliveryChecklist({ checkedItems, setCheckedItems, onNex
 
         <Divider sx={{ my: 3 }} />
 
+        {!allChecked && (
+          <Alert severity="error" sx={{ borderRadius: 2, mb: 2 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              Debes marcar todos los puntos del checklist ({checkedCount} de {totalCount}) antes de continuar.
+            </Typography>
+          </Alert>
+        )}
+
         <Alert
-          severity={confirmed ? 'success' : 'warning'}
+          severity={confirmed && allChecked ? 'success' : 'warning'}
           sx={{ borderRadius: 2, mb: 2 }}
-          icon={confirmed ? <CheckCircleOutline /> : undefined}
+          icon={confirmed && allChecked ? <CheckCircleOutline /> : undefined}
         >
           <FormControlLabel
             control={
@@ -298,6 +310,7 @@ export default function DeliveryChecklist({ checkedItems, setCheckedItems, onNex
                 checked={confirmed}
                 onChange={(e) => setConfirmed(e.target.checked)}
                 color="success"
+                disabled={!allChecked}
               />
             }
             label={
@@ -324,7 +337,7 @@ export default function DeliveryChecklist({ checkedItems, setCheckedItems, onNex
           variant="contained"
           endIcon={loading ? null : <ArrowForward />}
           onClick={handleContinue}
-          disabled={!confirmed || loading}
+          disabled={!confirmed || !allChecked || loading}
           sx={{ textTransform: 'none', borderRadius: 2, px: 4, fontWeight: 600 }}
         >
           {loading ? <CircularProgress size={22} color="inherit" /> : 'Continuar'}
@@ -348,7 +361,7 @@ export default function DeliveryChecklist({ checkedItems, setCheckedItems, onNex
           </Box>
           {currentCommentItem && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              {currentCommentItem.id} - {currentCommentItem.label}
+              {currentCommentItem.label}
             </Typography>
           )}
         </DialogTitle>

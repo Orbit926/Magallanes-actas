@@ -146,7 +146,6 @@ export default function SignaturePad({ formData, checkedItems, comments, onBack,
             bgcolor: hasSignature ? 'success.50' : 'grey.50',
             overflow: 'hidden',
             transition: 'all 0.3s ease',
-            mb: 2,
           }}
         >
           <canvas
@@ -160,6 +159,20 @@ export default function SignaturePad({ formData, checkedItems, comments, onBack,
             }}
           />
         </Box>
+        
+        {/* Nombre del propietario debajo del recuadro de firma */}
+        <Typography
+          variant="body1"
+          sx={{
+            textAlign: 'center',
+            fontWeight: 600,
+            color: 'primary.dark',
+            mt: 1,
+            mb: 2,
+          }}
+        >
+          {`${formData.nombre || ''} ${formData.apellidoPaterno || ''} ${formData.apellidoMaterno || ''}`.trim() || 'Nombre del Propietario'}
+        </Typography>
 
         <Box sx={{ display: 'flex', gap: 1.5, mb: 3 }}>
           <Button

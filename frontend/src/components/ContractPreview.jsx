@@ -150,21 +150,6 @@ export default function ContractPreview({ formData, onNext, onBack }) {
           );
         })}
 
-        {/* Visual signature lines */}
-        <Box sx={{ mt: 6, display: 'flex', justifyContent: 'space-between', px: 2 }}>
-          <Box sx={{ textAlign: 'center', width: '40%' }}>
-            <Box sx={{ borderBottom: '1px solid', borderColor: 'grey.400', mb: 1, height: 40 }} />
-            <Typography variant="caption" color="text.secondary">
-              EL PROPIETARIO
-            </Typography>
-          </Box>
-          <Box sx={{ textAlign: 'center', width: '40%' }}>
-            <Box sx={{ borderBottom: '1px solid', borderColor: 'grey.400', mb: 1, height: 40 }} />
-            <Typography variant="caption" color="text.secondary">
-              LA CONSTRUCTORA
-            </Typography>
-          </Box>
-        </Box>
       </Paper>
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3, maxWidth: 720, mx: 'auto' }}>

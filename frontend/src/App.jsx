@@ -255,7 +255,7 @@ export default function App() {
           }}
         >
           <Typography variant="caption" color="text.disabled">
-            Demo — Entrega Digital © {new Date().getFullYear()} · Constructora Hacienda del Monte, S.A. de C.V.
+            Demo — Acta de Entrega © {new Date().getFullYear()} · Magallanes Residencial
           </Typography>
         </Box>
       </Box>

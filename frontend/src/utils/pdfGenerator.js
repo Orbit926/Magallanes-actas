@@ -68,12 +68,12 @@ function addHeader(doc, folio, logoImg) {
     }
   }
   
-  // Texto del header
+  // Texto del header - Magallanes Residencial en dorado
   const textX = logoImg ? MARGIN_LEFT + 20 : MARGIN_LEFT;
-  doc.setTextColor(primaryDarkRgb.r, primaryDarkRgb.g, primaryDarkRgb.b);
-  doc.setFontSize(11);
+  doc.setTextColor(secondaryRgb.r, secondaryRgb.g, secondaryRgb.b);
+  doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text('Constructora Hacienda del Monte, S.A. de C.V.', textX, 12);
+  doc.text('Magallanes Residencial', textX, 12);
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
@@ -81,19 +81,36 @@ function addHeader(doc, folio, logoImg) {
   doc.setTextColor(0, 0, 0);
 }
 
-function addFooter(doc, pageNum, totalPages, folio, fecha, signatureImg) {
+function addFooter(doc, pageNum, totalPages, folio, fecha, signatureImg, firmaVendedor) {
   const footerY = PAGE_HEIGHT - 45;
 
   doc.setDrawColor(secondaryRgb.r, secondaryRgb.g, secondaryRgb.b);
   doc.setLineWidth(0.5);
   doc.line(MARGIN_LEFT, footerY, PAGE_WIDTH - MARGIN_RIGHT, footerY);
 
+  // Firma del vendedor en el lado izquierdo
+  if (firmaVendedor) {
+    try {
+      const sigW = 35;
+      const sigH = 16;
+      const sigX = MARGIN_LEFT;
+      const sigY = footerY + 4;
+      doc.addImage(firmaVendedor, 'PNG', sigX, sigY, sigW, sigH);
+      doc.setFontSize(5);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Vendedor', sigX + sigW / 2, sigY + sigH + 3, { align: 'center' });
+    } catch (e) {
+      console.warn('No se pudo agregar firma vendedor en footer:', e);
+    }
+  }
+
   doc.setFontSize(7);
   doc.setTextColor(100, 100, 100);
   doc.setFont('helvetica', 'italic');
+  const textStartX = firmaVendedor ? MARGIN_LEFT + 42 : MARGIN_LEFT;
   doc.text(
-    `Firmado electrónicamente (demo) | Folio: ${folio} | Fecha: ${fecha}`,
-    MARGIN_LEFT,
+    `Folio: ${folio} | Fecha: ${fecha}`,
+    textStartX,
     footerY + 8
   );
   doc.text(
@@ -105,21 +122,21 @@ function addFooter(doc, pageNum, totalPages, folio, fecha, signatureImg) {
 
   doc.setFontSize(6);
   doc.text(
-    'Este documento fue generado electrónicamente y no requiere firma autógrafa para su validez (DEMO).',
-    MARGIN_LEFT,
+    'Este documento fue generado electrónicamente.',
+    textStartX,
     footerY + 14
   );
 
   if (signatureImg) {
     try {
-      const sigW = 40;
-      const sigH = 18;
+      const sigW = 35;
+      const sigH = 16;
       const sigX = PAGE_WIDTH - MARGIN_RIGHT - sigW;
-      const sigY = footerY + 10;
+      const sigY = footerY + 4;
       doc.addImage(signatureImg, 'PNG', sigX, sigY, sigW, sigH);
-      doc.setFontSize(6);
+      doc.setFontSize(5);
       doc.setTextColor(100, 100, 100);
-      doc.text('Firma del propietario', sigX + sigW / 2, sigY + sigH + 4, { align: 'center' });
+      doc.text('Propietario', sigX + sigW / 2, sigY + sigH + 3, { align: 'center' });
     } catch (e) {
       console.warn('No se pudo agregar firma en footer:', e);
     }
@@ -253,17 +270,24 @@ export async function generatePDF({ formData, checkedItems, comments, signatureI
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
 
-      // Draw checkbox
-      doc.setDrawColor(150, 150, 150);
-      doc.setLineWidth(0.3);
-      doc.rect(MARGIN_LEFT + 3, y - 3, 4, 4);
+      // Draw checkbox - improved rendering
+      const checkboxX = MARGIN_LEFT + 3;
+      const checkboxY = y - 3.5;
+      const checkboxSize = 4;
+      
+      // Draw checkbox border
+      doc.setDrawColor(120, 120, 120);
+      doc.setLineWidth(0.4);
+      doc.rect(checkboxX, checkboxY, checkboxSize, checkboxSize);
 
       if (isChecked) {
-        doc.setTextColor(0, 130, 60);
-        doc.setFont('helvetica', 'bold');
-        doc.text('✓', MARGIN_LEFT + 3.7, y);
-        doc.setTextColor(0, 0, 0);
-        doc.setFont('helvetica', 'normal');
+        // Draw checkmark as lines for cleaner look
+        doc.setDrawColor(0, 130, 60);
+        doc.setLineWidth(0.6);
+        // First line of checkmark (short)
+        doc.line(checkboxX + 0.8, checkboxY + 2.2, checkboxX + 1.6, checkboxY + 3);
+        // Second line of checkmark (long)
+        doc.line(checkboxX + 1.6, checkboxY + 3, checkboxX + 3.2, checkboxY + 1);
       }
 
       doc.text(item.label, MARGIN_LEFT + 12, y);
@@ -389,7 +413,7 @@ export async function generatePDF({ formData, checkedItems, comments, signatureI
   }
 
   // ===================== Signature block on last page =====================
-  if (y > MAX_Y - 40) {
+  if (y > MAX_Y - 70) {
     y = addNewPage(doc, folio, logoImg);
   }
 
@@ -397,7 +421,15 @@ export async function generatePDF({ formData, checkedItems, comments, signatureI
   doc.setDrawColor(primaryDarkRgb.r, primaryDarkRgb.g, primaryDarkRgb.b);
   doc.setLineWidth(0.5);
   doc.line(MARGIN_LEFT, y, PAGE_WIDTH - MARGIN_RIGHT, y);
-  y += 10;
+  y += 8;
+
+  // Texto de conformidad (movido de la segunda hoja)
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(0, 0, 0);
+  const textoConformidad = 'Firmando de conformidad para constancia de la entrega del Inmueble, conocimiento del reglamento, de la presente Póliza de Garantía y para los efectos legales correspondientes.';
+  y = writeWrappedText(doc, textoConformidad, MARGIN_LEFT, y, CONTENT_WIDTH, 4.5, folio, logoImg);
+  y += 8;
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
@@ -443,13 +475,13 @@ export async function generatePDF({ formData, checkedItems, comments, signatureI
   doc.setFont('helvetica', 'italic');
   doc.setTextColor(100, 100, 100);
   doc.text('EL PROPIETARIO', sigBlockX1, y);
-  doc.text('Constructora Hacienda del Monte', sigBlockX2, y);
+  doc.text('Magallanes Residencial', sigBlockX2, y);
 
   // ===================== Add footers to all pages =====================
   const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
-    addFooter(doc, i, totalPages, folio, fechaHora, signatureImg);
+    addFooter(doc, i, totalPages, folio, fechaHora, signatureImg, firmaRepresentante);
   }
 
   // Generate filename

@@ -122,10 +122,28 @@ export function getContractText(data) {
     {
       title: '',
       content:
-        `I.- Garantía al día de la entrega de la propiedad, misma que aplicará en ese momento por cualquier defecto.\n\n` +
+        `I.- Garantía al día de la entrega de la propiedad, misma que aplicará en ese momento por cualquier defecto.\n` +
+        `    a) Pintura y enjarres completos\n` +
+        `    b) Cristales no rotos y Aluminio completo\n` +
+        `    c) Carpintería completa\n` +
+        `    d) Accesorios hidráulicos completos\n` +
+        `    e) Accesorios eléctricos completos\n` +
+        `    f) Herrería completa (balcón y escalera marina)\n` +
+        `    g) Elementos decorativos completos (lámpara de barro y 3 faroles)\n` +
+        `    h) Piso completo no roto\n` +
+        `    i) Funcionamiento de chapas\n` +
+        `    j) Equipos completos:\n` +
+        `        - Estufa y kit de conexión (es necesario que quien le instale el tanque estacionario verifique las conexiones y salidas de gas)\n` +
+        `        - Campana\n` +
+        `        - Tarja con mezcladora (cocina)\n` +
+        `        - Bomba\n` +
+        `        - Tarja y mezcladora (cuarto de servicio)\n` +
+        `        - Boiler y kit de conectividad (es necesario que quien le instale el tanque estacionario verifique las conexiones y salidas de gas)\n` +
+        `        - Aire acondicionado y control (Recámara principal)\n` +
+        `        - Aire acondicionado y control (Recámara secundaria)\n\n` +
         `II.- Garantía de treinta días por vicios ocultos.\n\n` +
         `III.- Garantía por cinco años respecto a daños que afecten específicamente la estructura de la construcción.\n\n` +
-        `IMPORTANTE: A partir de esta fecha, es responsabilidad del “PROPIETARIO” revisar y estar al pendiente de su propiedad constantemente para identificar, si es el caso, alguna filtración o fuga que pudiera afectar la carpintería, enjarres, pintura, etc. y es responsabilidad de “EL PROPIETARIO” dar aviso de inmediato al “EL VENDEDOR” para su reparación.`,
+        `IMPORTANTE: A partir de esta fecha, es responsabilidad del "PROPIETARIO" revisar y estar al pendiente de su propiedad constantemente para identificar, si es el caso, alguna filtración o fuga que pudiera afectar la carpintería, enjarres, pintura, etc. y es responsabilidad de "EL PROPIETARIO" dar aviso de inmediato al "EL VENDEDOR" para su reparación.`,
     },
     {
       title: '',
@@ -146,13 +164,6 @@ export function getContractText(data) {
         `• EL VENDEDOR se deslinda de cualquier falla tanto estructural como de funcionamiento de instalaciones, ocasionada por las modificaciones o ampliaciones hechas de manera arbitraria al proyecto original, por parte de “EL PROPIETARIO”.\n` +
         `• El condominio cuenta con registros y ductos subterráneos para el servicio de telefonía e internet, el propietario de cada unidad privativa contratará su servicio y es responsabilidad de la empresa contratada por el propietario utilizar los ductos y suministrar e instalar la infraestructura necesaria para poder proporcionar el servicio.\n` +
         `• Se le recuerda que el área verde, la plazoleta y la casa club no pertenecen al régimen de condominio por ser área de cesión al Ayuntamiento y se encuentran bajo resguardo, responsabilidad y mantenimiento del constructor por lo que no es posible entrar y utilizar por los condóminos ya que son áreas que pasaran a ser propiedad del Ayuntamiento.`,
-    },
-    {
-      title: '',
-      content:
-        `Firmando de conformidad para constancia de la entrega del Inmueble, conocimiento del reglamento, de la presente Póliza de Garantía y para los efectos legales correspondientes.\n\n` +
-        `“EL PROPIETARIO”\n${nombreCompleto}\nemail: ${email}\nTeléfono: ${telefono}\n\n` +
-        `“VENDEDOR”\n${vendedorRepresentante}\nEn representación del ${vendedorRepresentadoPor}`,
     },
   ];
 }
