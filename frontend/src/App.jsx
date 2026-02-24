@@ -153,10 +153,10 @@ export default function App() {
               />
               <Box>
                 <Typography variant="subtitle1" sx={{ color: 'primary.dark', fontWeight: 700, lineHeight: 1.2, letterSpacing: 0.5 }}>
-                  Entrega Digital
+                  Acta de Entrega
                 </Typography>
                 <Typography variant="caption" sx={{ color: 'primary.dark', lineHeight: 1 }}>
-                  Demo — Constructora Hacienda del Monte
+                  Demo — Magallanes Residencial
                 </Typography>
               </Box>
             </Box>
