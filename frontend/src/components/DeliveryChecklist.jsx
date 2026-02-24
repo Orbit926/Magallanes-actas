@@ -131,7 +131,7 @@ export default function DeliveryChecklist({ checkedItems, setCheckedItems, onNex
       >
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
           <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
-            Checklist de Entrega
+            Garantias
           </Typography>
           <Chip
             icon={<CheckCircleOutline />}

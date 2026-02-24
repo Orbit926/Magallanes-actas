@@ -25,15 +25,15 @@ export const checklistSections = [
     ],
   },
   {
-    title: 'Equipos',
+    title: 'Equipos Completos',
     items: [
       {
         id: 'estufa_kit_gas',
-        label: 'Estufa y kit de conexión (verificar conexiones y salidas de gas)',
+        label: 'Estufa y kit de conexión',
       },
       { id: 'campana', label: 'Campana instalada' },
       { id: 'tarja_cocina', label: 'Tarja con mezcladora (cocina)' },
-      { id: 'bomba', label: 'Bomba instalada y funcional' },
+      { id: 'bomba', label: 'Bomba' },
       {
         id: 'tarja_servicio',
         label: 'Tarja y mezcladora (cuarto de servicio)',
