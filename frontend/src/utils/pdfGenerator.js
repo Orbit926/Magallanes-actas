@@ -470,18 +470,20 @@ export async function generatePDF({ formData, checkedItems, comments, signatureI
   doc.setFont('helvetica', 'normal');
   const nombreCompleto = `${formData.nombre || ''} ${formData.apellidoPaterno || ''} ${formData.apellidoMaterno || ''}`.trim();
   doc.text(nombreCompleto || 'EL PROPIETARIO', sigBlockX1, y);
-  doc.text('Representante de LA CONSTRUCTORA', sigBlockX2, y);
+  doc.text('Arq. Mayra Belén Lupercio Romero', sigBlockX2, y);
   y += 4;
   doc.setFont('helvetica', 'italic');
   doc.setTextColor(100, 100, 100);
   doc.text('EL PROPIETARIO', sigBlockX1, y);
-  doc.text('Magallanes Residencial', sigBlockX2, y);
+  doc.text('En rep. del Lic. Ricardo García Rulfo de Aguinaga', sigBlockX2, y);
 
   // ===================== Add footers to all pages =====================
   const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
-    addFooter(doc, i, totalPages, folio, fechaHora, signatureImg, firmaRepresentante);
+    // En la última página no poner firmas en el pie (ya están las firmas finales arriba)
+    const isLastPage = i === totalPages;
+    addFooter(doc, i, totalPages, folio, fechaHora, isLastPage ? null : signatureImg, isLastPage ? null : firmaRepresentante);
   }
 
   // Generate filename

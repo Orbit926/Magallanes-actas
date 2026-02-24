@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -30,6 +30,7 @@ import {
   EditOutlined,
 } from '@mui/icons-material';
 import { checklistSections } from '../utils/contractTemplate';
+import { useMobileModalProps } from './MobileModal';
 
 const sectionIcons = {
   Acabados: <FormatPaintOutlined />,
@@ -68,13 +69,13 @@ export default function DeliveryChecklist({ checkedItems, setCheckedItems, onNex
     setCommentModalOpen(true);
   };
 
-  const handleCloseCommentModal = () => {
+  const handleCloseCommentModal = useCallback(() => {
     setCommentModalOpen(false);
     setCurrentCommentItem(null);
     setTempComment('');
-  };
+  }, []);
 
-  const handleConfirmComment = () => {
+  const handleConfirmComment = useCallback(() => {
     if (!currentCommentItem) return;
     
     const itemId = currentCommentItem.id;
@@ -107,7 +108,10 @@ export default function DeliveryChecklist({ checkedItems, setCheckedItems, onNex
     });
     
     handleCloseCommentModal();
-  };
+  }, [currentCommentItem, tempComment, setItemComments, setComments, handleCloseCommentModal]);
+
+  // Hook para manejo de teclado en móvil (después de definir handleConfirmComment)
+  const mobileModalProps = useMobileModalProps(commentModalOpen, handleConfirmComment);
 
   const allChecked = checkedCount === totalCount;
 
@@ -350,9 +354,15 @@ export default function DeliveryChecklist({ checkedItems, setCheckedItems, onNex
         onClose={handleCloseCommentModal}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 3 } }}
+        onKeyDown={mobileModalProps.onKeyDown}
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            ...mobileModalProps.PaperProps.sx,
+          },
+        }}
       >
-        <DialogTitle sx={{ pb: 1 }}>
+        <DialogTitle sx={{ pb: 1, flexShrink: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <CommentOutlined color="primary" />
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
@@ -365,7 +375,7 @@ export default function DeliveryChecklist({ checkedItems, setCheckedItems, onNex
             </Typography>
           )}
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <TextField
             fullWidth
             multiline
@@ -382,7 +392,7 @@ export default function DeliveryChecklist({ checkedItems, setCheckedItems, onNex
             }}
           />
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions sx={{ px: 3, pb: 2, flexShrink: 0, borderTop: '1px solid', borderColor: 'grey.100' }}>
           <Button
             onClick={handleCloseCommentModal}
             variant="outlined"

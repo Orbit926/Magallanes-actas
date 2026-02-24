@@ -22,6 +22,7 @@ import {
 } from '@mui/icons-material';
 import SignaturePadLib from 'signature_pad';
 import { generatePDF } from '../utils/pdfGenerator';
+import { useMobileModalProps } from './MobileModal';
 
 export default function SignaturePad({ formData, checkedItems, comments, onBack, onReset }) {
   const canvasRef = useRef(null);
@@ -95,12 +96,12 @@ export default function SignaturePad({ formData, checkedItems, comments, onBack,
     setLegalModalOpen(true);
   };
 
-  const handleCloseLegalModal = () => {
+  const handleCloseLegalModal = useCallback(() => {
     setLegalModalOpen(false);
     setLegalAccepted(false);
-  };
+  }, []);
 
-  const handleConfirmLegal = async () => {
+  const handleConfirmLegal = useCallback(async () => {
     if (!legalAccepted) return;
     setLegalModalOpen(false);
     setLoading(true);
@@ -115,7 +116,10 @@ export default function SignaturePad({ formData, checkedItems, comments, onBack,
     } finally {
       setLoading(false);
     }
-  };
+  }, [legalAccepted, formData, checkedItems, comments]);
+
+  // Hook para manejo de teclado en móvil
+  const legalModalProps = useMobileModalProps(legalModalOpen, legalAccepted ? handleConfirmLegal : null);
 
   return (
     <Box>
@@ -234,15 +238,21 @@ export default function SignaturePad({ formData, checkedItems, comments, onBack,
         onClose={handleCloseLegalModal}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 3 } }}
+        onKeyDown={legalModalProps.onKeyDown}
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            ...legalModalProps.PaperProps.sx,
+          },
+        }}
       >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
           <GavelOutlined sx={{ color: 'primary.main', fontSize: 28 }} />
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
             Confirmación Legal
           </Typography>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <Alert severity="info" sx={{ borderRadius: 2, mb: 3 }}>
             Antes de finalizar, por favor confirma que estás de acuerdo con los términos legales.
           </Alert>
@@ -265,7 +275,7 @@ export default function SignaturePad({ formData, checkedItems, comments, onBack,
             }}
           />
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions sx={{ px: 3, pb: 2, flexShrink: 0, borderTop: '1px solid', borderColor: 'grey.100' }}>
           <Button
             onClick={handleCloseLegalModal}
             variant="outlined"
