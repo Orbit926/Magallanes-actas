@@ -491,6 +491,9 @@ export async function generatePDF({ formData, checkedItems, comments, signatureI
   const casa = formData.numeroCasa || '0';
   const fileName = `Acta_Entrega_Recepcion_Casa_${casa}_${apellido}.pdf`;
 
+  // Get base64 BEFORE saving (save triggers download)
+  const pdfArrayBuffer = doc.output('arraybuffer');
+
   doc.save(fileName);
-  return fileName;
+  return { fileName, pdfArrayBuffer };
 }

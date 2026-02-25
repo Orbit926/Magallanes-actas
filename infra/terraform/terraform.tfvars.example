@@ -17,9 +17,11 @@ environment  = "dev"
 seller_email    = "vendedor@ejemplo.com"
 zoho_from_email = "noreply@tudominio.com"
 
-# ── Zoho API ────────────────────────────────────
-zoho_api_base_url      = "https://mail.zoho.com"
-secret_name_zoho_token = "magallanes/zoho-oauth-token"
+# ── Zoho SMTP credentials ───────────────────────
+zoho_smtp_host = "smtp.zoho.com"
+zoho_smtp_port = 465
+zoho_smtp_user = "tu-cuenta@tudominio.com"
+zoho_smtp_pass = "tu-app-password-aqui"
 
 # ── CORS (use your frontend domain in prod) ─────
 cors_allowed_origins = ["*"]

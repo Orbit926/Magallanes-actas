@@ -365,7 +365,7 @@ export default function DeliveryChecklist({ checkedItems, setCheckedItems, onNex
         <DialogTitle sx={{ pb: 1, flexShrink: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <CommentOutlined color="primary" />
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            <Typography variant="h6" component="span" sx={{ fontWeight: 700 }}>
               Agregar Comentario
             </Typography>
           </Box>

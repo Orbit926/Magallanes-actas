@@ -42,28 +42,40 @@ variable "environment" {
 }
 
 # ──────────────────────────────────────────────
-# Email / Zoho
+# Email / Zoho SMTP
 # ──────────────────────────────────────────────
 variable "seller_email" {
-  description = "Seller email (cc/bcc on every contract sent)"
+  description = "Seller email (bcc on every contract sent)"
   type        = string
 }
 
 variable "zoho_from_email" {
-  description = "From address used in Zoho Mail API"
+  description = "From address used in outgoing emails"
   type        = string
 }
 
-variable "zoho_api_base_url" {
-  description = "Zoho Mail API base URL (e.g. https://mail.zoho.com)"
+variable "zoho_smtp_host" {
+  description = "Zoho SMTP server hostname"
   type        = string
-  default     = "https://mail.zoho.com"
+  default     = "smtp.zoho.com"
 }
 
-variable "secret_name_zoho_token" {
-  description = "Name of the Secrets Manager secret that holds the Zoho OAuth access token"
+variable "zoho_smtp_port" {
+  description = "Zoho SMTP SSL port"
+  type        = number
+  default     = 465
+}
+
+variable "zoho_smtp_user" {
+  description = "Zoho SMTP username (email)"
   type        = string
-  default     = "magallanes/zoho-oauth-token"
+  sensitive   = true
+}
+
+variable "zoho_smtp_pass" {
+  description = "Zoho SMTP password or app-specific password"
+  type        = string
+  sensitive   = true
 }
 
 # ──────────────────────────────────────────────

@@ -23,10 +23,10 @@ resource "aws_cloudwatch_log_group" "lambda" {
 # ── Lambda function ──────────────────────────────
 resource "aws_lambda_function" "email_sender" {
   function_name    = local.function_name
-  description      = "Sends contract PDF via Zoho Mail API"
+  description      = "Sends contract PDF via Zoho SMTP"
   role             = var.lambda_role_arn
-  handler          = "index.handler"
-  runtime          = "nodejs18.x"
+  handler          = "lambda_function.lambda_handler"
+  runtime          = "python3.12"
   memory_size      = var.memory_size
   timeout          = var.timeout
   filename         = data.archive_file.lambda_zip.output_path
@@ -34,11 +34,12 @@ resource "aws_lambda_function" "email_sender" {
 
   environment {
     variables = {
-      SELLER_EMAIL           = var.seller_email
-      ZOHO_FROM_EMAIL        = var.zoho_from_email
-      ZOHO_API_BASE_URL      = var.zoho_api_base_url
-      ZOHO_TOKEN_SECRET_NAME = var.zoho_token_secret_name
-      NODE_OPTIONS           = "--enable-source-maps"
+      SELLER_EMAIL    = var.seller_email
+      ZOHO_FROM_EMAIL = var.zoho_from_email
+      ZOHO_SMTP_HOST  = var.zoho_smtp_host
+      ZOHO_SMTP_PORT  = tostring(var.zoho_smtp_port)
+      ZOHO_SMTP_USER  = var.zoho_smtp_user
+      ZOHO_SMTP_PASS  = var.zoho_smtp_pass
     }
   }
 

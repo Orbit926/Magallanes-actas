@@ -38,20 +38,3 @@ resource "aws_iam_role_policy" "lambda_logs" {
   role   = aws_iam_role.lambda.id
   policy = data.aws_iam_policy_document.lambda_logs.json
 }
-
-# ── Secrets Manager read ─────────────────────────
-data "aws_iam_policy_document" "lambda_secrets" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "secretsmanager:GetSecretValue",
-    ]
-    resources = [var.secret_arn]
-  }
-}
-
-resource "aws_iam_role_policy" "lambda_secrets" {
-  name   = "read-zoho-secret"
-  role   = aws_iam_role.lambda.id
-  policy = data.aws_iam_policy_document.lambda_secrets.json
-}

@@ -22,13 +22,3 @@ output "lambda_role_arn" {
   description = "IAM role ARN used by the Lambda"
   value       = module.iam.lambda_role_arn
 }
-
-output "secret_arn" {
-  description = "ARN of the Secrets Manager secret for the Zoho token"
-  value       = module.secrets.secret_arn
-}
-
-output "secret_name" {
-  description = "Name of the Secrets Manager secret (use this with AWS CLI to set the value)"
-  value       = module.secrets.secret_name
-}

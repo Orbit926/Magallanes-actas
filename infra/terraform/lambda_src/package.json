@@ -1,9 +1,0 @@
-{
-  "name": "magallanes-email-sender",
-  "version": "1.0.0",
-  "description": "Lambda that sends contract emails via Zoho Mail API",
-  "main": "index.js",
-  "type": "commonjs",
-  "license": "UNLICENSED",
-  "dependencies": {}
-}

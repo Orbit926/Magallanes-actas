@@ -36,16 +36,30 @@ variable "seller_email" {
 }
 
 variable "zoho_from_email" {
-  description = "From email for Zoho Mail API"
+  description = "From email address used in outgoing emails"
   type        = string
 }
 
-variable "zoho_api_base_url" {
-  description = "Base URL of the Zoho Mail API"
+variable "zoho_smtp_host" {
+  description = "Zoho SMTP server hostname"
   type        = string
+  default     = "smtp.zoho.com"
 }
 
-variable "zoho_token_secret_name" {
-  description = "Name of the Secrets Manager secret holding the Zoho OAuth token"
+variable "zoho_smtp_port" {
+  description = "Zoho SMTP SSL port"
+  type        = number
+  default     = 465
+}
+
+variable "zoho_smtp_user" {
+  description = "Zoho SMTP username (email)"
   type        = string
+  sensitive   = true
+}
+
+variable "zoho_smtp_pass" {
+  description = "Zoho SMTP password or app-specific password"
+  type        = string
+  sensitive   = true
 }

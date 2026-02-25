@@ -19,10 +19,13 @@ import {
   PictureAsPdfOutlined,
   CheckCircle,
   GavelOutlined,
+  EmailOutlined,
+  RefreshOutlined,
 } from '@mui/icons-material';
 import SignaturePadLib from 'signature_pad';
 import { generatePDF } from '../utils/pdfGenerator';
 import { useMobileModalProps } from './MobileModal';
+import { sendContractEmail, arrayBufferToBase64 } from '../utils/contractApi';
 
 export default function SignaturePad({ formData, checkedItems, comments, onBack, onReset }) {
   const canvasRef = useRef(null);
@@ -34,6 +37,12 @@ export default function SignaturePad({ formData, checkedItems, comments, onBack,
   const [generatedFile, setGeneratedFile] = useState('');
   const [legalModalOpen, setLegalModalOpen] = useState(false);
   const [legalAccepted, setLegalAccepted] = useState(false);
+
+  // Email sending state
+  const [emailStatus, setEmailStatus] = useState('idle'); // idle | sending | sent | error
+  const [emailError, setEmailError] = useState('');
+  const lastPdfRef = useRef(null); // Cache PDF data for retry
+  const sendingRef = useRef(false); // Prevent duplicate sends
 
   const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -101,22 +110,64 @@ export default function SignaturePad({ formData, checkedItems, comments, onBack,
     setLegalAccepted(false);
   }, []);
 
+  const doSendEmail = useCallback(async (fileName, pdfBase64) => {
+    if (sendingRef.current) return;
+    sendingRef.current = true;
+    setEmailStatus('sending');
+    setEmailError('');
+
+    const clientEmail = formData.email || formData.correo || '';
+    if (!clientEmail) {
+      setEmailStatus('error');
+      setEmailError('No se encontró el email del cliente en el formulario.');
+      sendingRef.current = false;
+      return;
+    }
+
+    const result = await sendContractEmail({
+      clientEmail,
+      fileName,
+      pdfBase64,
+    });
+
+    if (result.ok) {
+      setEmailStatus('sent');
+    } else {
+      setEmailStatus('error');
+      setEmailError(result.error || 'Error desconocido al enviar correo.');
+    }
+    sendingRef.current = false;
+  }, [formData]);
+
+  const handleRetryEmail = useCallback(() => {
+    if (!lastPdfRef.current) return;
+    const { fileName, pdfBase64 } = lastPdfRef.current;
+    doSendEmail(fileName, pdfBase64);
+  }, [doSendEmail]);
+
   const handleConfirmLegal = useCallback(async () => {
     if (!legalAccepted) return;
     setLegalModalOpen(false);
     setLoading(true);
+    setEmailStatus('idle');
+    setEmailError('');
     try {
       const signatureImg = sigPadRef.current.toDataURL('image/png');
-      const fileName = await generatePDF({ formData, checkedItems, comments, signatureImg });
+      const { fileName, pdfArrayBuffer } = await generatePDF({ formData, checkedItems, comments, signatureImg });
       setGeneratedFile(fileName);
       setDialogOpen(true);
+
+      // Convert to base64 and send email (non-blocking, doesn't affect download)
+      const pdfBase64 = arrayBufferToBase64(pdfArrayBuffer);
+      lastPdfRef.current = { fileName, pdfBase64 };
+      doSendEmail(fileName, pdfBase64);
     } catch (err) {
       console.error('Error generating PDF:', err);
       alert('Error al generar el PDF. Revisa la consola.');
     } finally {
       setLoading(false);
     }
-  }, [legalAccepted, formData, checkedItems, comments]);
+  }, [legalAccepted, formData, checkedItems, comments, doSendEmail]);
 
   // Hook para manejo de teclado en móvil
   const legalModalProps = useMobileModalProps(legalModalOpen, legalAccepted ? handleConfirmLegal : null);
@@ -248,7 +299,7 @@ export default function SignaturePad({ formData, checkedItems, comments, onBack,
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
           <GavelOutlined sx={{ color: 'primary.main', fontSize: 28 }} />
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          <Typography variant="h6" component="span" sx={{ fontWeight: 700 }}>
             Confirmación Legal
           </Typography>
         </DialogTitle>
@@ -304,7 +355,7 @@ export default function SignaturePad({ formData, checkedItems, comments, onBack,
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <CheckCircle sx={{ color: 'success.main', fontSize: 32 }} />
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          <Typography variant="h6" component="span" sx={{ fontWeight: 700 }}>
             Documento generado exitosamente
           </Typography>
         </DialogTitle>
@@ -322,14 +373,56 @@ export default function SignaturePad({ formData, checkedItems, comments, onBack,
             El documento incluye el acta de entrega, el checklist de inspección y la póliza de
             garantía con tu firma digital en cada página.
           </Typography>
+
+          {/* Email sending status */}
+          {emailStatus === 'sending' && (
+            <Alert
+              severity="info"
+              icon={<CircularProgress size={18} />}
+              sx={{ borderRadius: 2, mt: 2 }}
+            >
+              Enviando contrato por correo electrónico…
+            </Alert>
+          )}
+          {emailStatus === 'sent' && (
+            <Alert
+              severity="success"
+              icon={<EmailOutlined />}
+              sx={{ borderRadius: 2, mt: 2 }}
+            >
+              Contrato enviado por correo a <strong>{formData.email || formData.correo}</strong>
+            </Alert>
+          )}
+          {emailStatus === 'error' && (
+            <Alert
+              severity="warning"
+              sx={{ borderRadius: 2, mt: 2 }}
+              action={
+                <Button
+                  color="inherit"
+                  size="small"
+                  startIcon={<RefreshOutlined />}
+                  onClick={handleRetryEmail}
+                  sx={{ textTransform: 'none' }}
+                >
+                  Reintentar
+                </Button>
+              }
+            >
+              {emailError || 'No se pudo enviar el correo.'}
+            </Alert>
+          )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button
             onClick={() => {
               setDialogOpen(false);
+              setEmailStatus('idle');
+              lastPdfRef.current = null;
               if (onReset) onReset();
             }}
             variant="contained"
+            disabled={emailStatus === 'sending'}
             sx={{ textTransform: 'none', borderRadius: 2, px: 4 }}
           >
             Aceptar
